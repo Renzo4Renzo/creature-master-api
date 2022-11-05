@@ -66,18 +66,17 @@ async function postCard(card) {
     return { message: SAVED_FAILURE_MESSAGE, errors: resultValidateArray };
   }
 
-  const newCard = Object.assign(card, {
-    createdAt: new Date(),
-  });
-  const saveResult = await saveCard(newCard);
+  const saveResult = await saveCard(card);
   return saveResult;
 }
 
 async function saveCard(card) {
   try {
     const cardToSave = new cards(card);
-    await cardToSave.save();
-    return { message: SAVED_SUCCESSFUL_MESSAGE };
+    const response = await cardToSave.save();
+    const cardData = response._doc;
+    delete cardData._id;
+    return { message: SAVED_SUCCESSFUL_MESSAGE, data: cardData };
   } catch (error) {
     mappedErrors = error.errors;
     Object.keys(mappedErrors).forEach(function (key) {

@@ -90,10 +90,8 @@ const cardsSchema = new mongoose.Schema(
         `turns is needed on Field Boost Cards!`,
       ],
     },
-    createdAt: { type: Date },
-    updatedAt: { type: Date },
   },
-  { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 
 module.exports = mongoose.model("Card", cardsSchema);

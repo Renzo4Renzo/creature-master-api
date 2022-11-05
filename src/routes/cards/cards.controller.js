@@ -9,7 +9,7 @@ async function httpPostCards(req, res) {
 
   const postResult = await postCard(card);
   if (postResult.errors === undefined) {
-    return res.status(201).json({ message: postResult.message, data: card });
+    return res.status(201).json({ message: postResult.message, data: postResult.data });
   } else {
     return res.status(400).json(postResult);
   }
