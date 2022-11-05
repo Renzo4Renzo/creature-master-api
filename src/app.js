@@ -8,6 +8,6 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 
-app.use("v1", api);
+app.use("/v1", api);
 
 module.exports = app;
