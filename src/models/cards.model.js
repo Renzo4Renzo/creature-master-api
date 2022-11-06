@@ -1,9 +1,10 @@
 const cards = require("./cards.schema");
+const { createFilterQuery } = require("../services/filter");
 
 const VALIDATE_FIELD_BOOST_FIELDS_SUCCESSFUL_MESSAGE = "validateFieldBoostFields successful!";
 const VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE = "validateCreatureFields successful!";
-const SAVED_SUCCESSFUL_MESSAGE = "Card saved successfully!";
-const SAVED_FAILURE_MESSAGE = "Card was not saved!";
+const SAVED_SUCCESSFUL_MESSAGE = "The card was saved successfully!";
+const SAVED_FAILURE_MESSAGE = "Could not save the card!";
 
 function validateCreatureFields(card) {
   if (card.guild) {
@@ -86,6 +87,28 @@ async function saveCard(card) {
   }
 }
 
+async function countCards(filters) {
+  const findQuery = createFilterQuery(filters, cards);
+  const totalDocs = await cards.countDocuments(findQuery);
+  return totalDocs;
+}
+
+async function getFilteredCards(filters, pageOffset, pageSize) {
+  const findQuery = createFilterQuery(filters, cards);
+  const filteredCards = await cards.find(findQuery, { _id: 0 }).sort({ name: 1 }).skip(pageOffset).limit(pageSize);
+  return filteredCards;
+}
+
+async function getCard(name) {
+  const singleCard = await cards.findOne({ name: name }, { _id: 0 });
+  if (singleCard === null) {
+    throw new Error(`There is no card with the name '${name}'`);
+  } else return singleCard;
+}
+
 module.exports = {
   postCard,
+  getFilteredCards,
+  countCards,
+  getCard,
 };
