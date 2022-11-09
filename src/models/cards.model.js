@@ -1,5 +1,6 @@
 const cards = require("./cards.schema");
 const { createFilterQuery } = require("../services/filter");
+const { createSortQuery } = require("../services/sort");
 
 const VALIDATE_FIELD_BOOST_FIELDS_SUCCESSFUL_MESSAGE = "validateFieldBoostFields successful!";
 const VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE = "validateCreatureFields successful!";
@@ -95,7 +96,8 @@ async function countCards(filters) {
 
 async function getFilteredCards(filters, pageOffset, pageSize) {
   const findQuery = createFilterQuery(filters, cards);
-  const filteredCards = await cards.find(findQuery, { _id: 0 }).sort({ name: 1 }).skip(pageOffset).limit(pageSize);
+  const sortQuery = createSortQuery(filters, cards);
+  const filteredCards = await cards.find(findQuery, { _id: 0 }).sort(sortQuery).skip(pageOffset).limit(pageSize);
   return filteredCards;
 }
 

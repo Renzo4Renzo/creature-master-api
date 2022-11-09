@@ -1,5 +1,6 @@
 const { postCard, getFilteredCards, countCards, getCard } = require("../../models/cards.model");
 const { getPagination } = require("../../services/pagination");
+const { sortDocuments } = require("../../services/sort");
 
 const SAVED_FAILURE_MESSAGE = "Could not save the card!";
 const GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE = "Could not retrieve cards!";

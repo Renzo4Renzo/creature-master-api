@@ -1,9 +1,14 @@
 const { removeSpecificArrayItem } = require("./array");
 
 function createFilterQuery(filters, model) {
-  const requestFilters = filters;
+  let requestFilters = {};
+  for (const filter in filters) {
+    requestFilters[filter] = filters[filter];
+  }
   delete requestFilters.page;
   delete requestFilters.pageSize;
+  delete requestFilters.sortBy;
+  delete requestFilters.sortOrder;
 
   const availableFilters = Object.keys(model.schema.paths);
   removeSpecificArrayItem(availableFilters, "_id");
@@ -28,7 +33,6 @@ function createFilterQuery(filters, model) {
     if (model.schema.paths[key].instance === "String") findQuery[key] = new RegExp(findQuery[key]);
     else if (model.schema.paths[key].instance === "Number") findQuery[key] = Number(findQuery[key]);
   }
-
   return findQuery;
 }
 
