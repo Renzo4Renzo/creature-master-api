@@ -1,17 +1,21 @@
-const { postCard, getFilteredCards, countCards, getCard } = require("../../models/cards.model");
+const { postCard, getFilteredCards, countCards, getCard, patchCard } = require("../../models/cards.model");
 const { getPagination } = require("../../services/pagination");
-const { sortDocuments } = require("../../services/sort");
 
-const SAVED_FAILURE_MESSAGE = "Could not save the card!";
-const GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE = "Could not retrieve cards!";
-const GET_CARD_SUCCESSFUL_MESSAGE = "Card found!";
-const GET_CARD_FAILURE_MESSAGE = "Could not retrieve card!";
+const {
+  EMPTY_BODY_ERROR,
+  EMPTY_NAME_PARAM_ERROR,
+  GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE,
+  GET_CARD_SUCCESSFUL_MESSAGE,
+  GET_CARD_FAILURE_MESSAGE,
+  SAVED_FAILURE_MESSAGE,
+  UPDATED_FAILURE_MESSAGE,
+} = require("../../services/global");
 
 async function httpPostCards(req, res) {
   const card = req.body;
 
   if (Object.keys(card).length === 0) {
-    return res.status(400).json({ message: SAVED_FAILURE_MESSAGE, error: "No data was received!" });
+    return res.status(400).json({ message: SAVED_FAILURE_MESSAGE, errors: EMPTY_BODY_ERROR });
   }
 
   const postResult = await postCard(card);
@@ -41,7 +45,7 @@ async function httpGetCardsWithFilters(req, res) {
       nextPage,
     });
   } catch (error) {
-    return res.status(400).json({ message: GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE, error: error.message });
+    return res.status(400).json({ message: GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE, errors: error.message });
   }
 }
 
@@ -49,13 +53,36 @@ async function httpGetCard(req, res) {
   try {
     const { name } = req.params;
     if (name === undefined) {
-      return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, error: "name was not specified in the path!" });
+      return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
     }
     const card = await getCard(name);
     return res.status(200).json({ message: GET_CARD_SUCCESSFUL_MESSAGE, doc: card });
   } catch (error) {
-    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, error: error.message });
+    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: error.message });
   }
 }
 
-module.exports = { httpPostCards, httpGetCardsWithFilters, httpGetCard };
+async function httpPatchCard(req, res) {
+  try {
+    const { name } = req.params;
+    if (name === undefined) {
+      return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+    }
+
+    const fieldsToUpdate = req.body;
+    if (Object.keys(fieldsToUpdate).length === 0) {
+      return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: EMPTY_BODY_ERROR });
+    }
+
+    const patchResult = await patchCard(fieldsToUpdate, name);
+    if (patchResult.errors === undefined) {
+      return res.status(200).json({ message: patchResult.message, data: patchResult.data });
+    } else {
+      return res.status(400).json(patchResult);
+    }
+  } catch (error) {
+    return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: error.message });
+  }
+}
+
+module.exports = { httpPostCards, httpGetCardsWithFilters, httpGetCard, httpPatchCard };

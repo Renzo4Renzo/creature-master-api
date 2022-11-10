@@ -1,26 +1,37 @@
 const cards = require("./cards.schema");
 const { createFilterQuery } = require("../services/filter");
 const { createSortQuery } = require("../services/sort");
+const { setErrorMessageByHttpMethod } = require("../services/error-message");
+
+const { validateBody } = require("../services/body");
 
 const VALIDATE_FIELD_BOOST_FIELDS_SUCCESSFUL_MESSAGE = "validateFieldBoostFields successful!";
 const VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE = "validateCreatureFields successful!";
-const SAVED_SUCCESSFUL_MESSAGE = "The card was saved successfully!";
-const SAVED_FAILURE_MESSAGE = "Could not save the card!";
+
+const {
+  SAVED_SUCCESSFUL_MESSAGE,
+  SAVED_FAILURE_MESSAGE,
+  UPDATED_SUCCESSFUL_MESSAGE,
+  UPDATED_FAILURE_MESSAGE,
+} = require("../services/global");
 
 function validateCreatureFields(card) {
+  let creatureFieldErrors = [];
   if (card.guild) {
-    return `guild is not valid on ${card.type} Cards!`;
+    creatureFieldErrors.push(`guild is not valid on ${card.type} Cards!`);
   }
   if (card.trait) {
-    return `trait is not valid on ${card.type} Cards!`;
+    creatureFieldErrors.push(`trait is not valid on ${card.type} Cards!`);
   }
   if (card.weight) {
-    return `weight is not valid on ${card.type} Cards!`;
+    creatureFieldErrors.push(`weight is not valid on ${card.type} Cards!`);
   }
   if (card.lifePoints) {
-    return `lifePoints is not valid on ${card.type} Cards!`;
+    creatureFieldErrors.push(`lifePoints is not valid on ${card.type} Cards!`);
   }
-  return VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE;
+  if (creatureFieldErrors.length > 0) {
+    return creatureFieldErrors;
+  } else return VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE;
 }
 
 function validateFieldBoostFields(card) {
@@ -30,15 +41,10 @@ function validateFieldBoostFields(card) {
   return VALIDATE_FIELD_BOOST_FIELDS_SUCCESSFUL_MESSAGE;
 }
 
-async function postCard(card) {
-  const existingCard = await cards.findOne({ name: card.name });
-
-  if (existingCard) {
-    return { message: SAVED_FAILURE_MESSAGE, errors: `There is already a card named ${card.name}!` };
-  }
-
+function validateCard(card, httpMethod) {
   let resultValidateCreatureFields;
   let resultValidateFieldBoostFields;
+  let errorMessage;
 
   switch (card.type) {
     case "Creature":
@@ -54,18 +60,38 @@ async function postCard(card) {
       resultValidateFieldBoostFields = validateFieldBoostFields(card);
       break;
     default:
-      return { message: SAVED_FAILURE_MESSAGE, errors: `${card.type} is not a valid type!` };
+      errorMessage = setErrorMessageByHttpMethod(httpMethod);
+      return { message: errorMessage, errors: `${card.type} is not a valid type!` };
   }
 
   let resultValidateArray = [];
   if (resultValidateCreatureFields !== VALIDATE_CREATURE_FIELDS_SUCCESSFUL_MESSAGE) {
-    resultValidateArray.push(resultValidateCreatureFields);
+    resultValidateCreatureFields.forEach((error) => resultValidateArray.push(error));
   }
   if (resultValidateFieldBoostFields !== VALIDATE_FIELD_BOOST_FIELDS_SUCCESSFUL_MESSAGE) {
     resultValidateArray.push(resultValidateFieldBoostFields);
   }
   if (resultValidateArray.length > 0) {
-    return { message: SAVED_FAILURE_MESSAGE, errors: resultValidateArray };
+    errorMessage = setErrorMessageByHttpMethod(httpMethod);
+    return { message: errorMessage, errors: resultValidateArray };
+  }
+}
+
+async function postCard(card) {
+  const validateBodyResult = await validateBody(card, cards, "POST");
+  if (validateBodyResult !== undefined) {
+    return validateBodyResult;
+  }
+
+  const existingCard = await cards.findOne({ name: card.name });
+
+  if (existingCard) {
+    return { message: SAVED_FAILURE_MESSAGE, errors: `There is already a card called '${card.name}'!` };
+  }
+
+  const validateResult = validateCard(card, "POST");
+  if (validateResult !== undefined) {
+    return validateResult;
   }
 
   const saveResult = await saveCard(card);
@@ -108,9 +134,44 @@ async function getCard(name) {
   } else return singleCard;
 }
 
+async function patchCard(fieldsToUpdate, name) {
+  //TO DO: Patch should validate that body does not bring unexisting filters. Patch should allow to send 'null' to erase fields from database.
+  const result = await cards.findOne({ name: name });
+  if (result === null) {
+    return { message: UPDATED_FAILURE_MESSAGE, errors: `There is no card in database called '${name}'!` };
+  }
+  const { _doc: card } = result;
+  Object.assign(card, fieldsToUpdate);
+  delete card._id;
+
+  const validateResult = validateCard(card, "PATCH");
+  if (validateResult !== undefined) {
+    return validateResult;
+  }
+
+  const patchResult = await updateCard(card, name);
+  return patchResult;
+}
+
+async function updateCard(card, name) {
+  try {
+    const response = await cards.findOneAndUpdate({ name: name }, card, { new: true });
+    const cardData = response._doc;
+    delete cardData._id;
+    return { message: UPDATED_SUCCESSFUL_MESSAGE, data: cardData };
+  } catch (error) {
+    mappedErrors = error.errors;
+    Object.keys(mappedErrors).forEach(function (key) {
+      mappedErrors[key] = mappedErrors[key].message;
+    });
+    return { message: UPDATED_FAILURE_MESSAGE, errors: mappedErrors };
+  }
+}
+
 module.exports = {
   postCard,
   getFilteredCards,
   countCards,
   getCard,
+  patchCard,
 };
