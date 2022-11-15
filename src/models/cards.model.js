@@ -58,6 +58,7 @@ async function countCards(filters) {
 }
 
 async function getFilteredCards(filters, pageOffset, pageSize) {
+  //TO DO: Add "deletedAt: false" to filters
   const findQuery = createFilterQuery(filters, cards);
   const sortQuery = createSortQuery(filters, cards);
   const filteredCards = await cards.find(findQuery, { _id: 0 }).sort(sortQuery).skip(pageOffset).limit(pageSize);
