@@ -10,6 +10,8 @@ const SAVED_SUCCESSFUL_MESSAGE = "The card was saved successfully!";
 const SAVED_FAILURE_MESSAGE = "Could not save the card!";
 const UPDATED_SUCCESSFUL_MESSAGE = "The card was updated successfully!";
 const UPDATED_FAILURE_MESSAGE = "Could not update the card!";
+const DELETED_SUCCESSFUL_MESSAGE = "The card was deleted successfully!";
+const DELETED_FAILURE_MESSAGE = "Could not delete the card!";
 
 module.exports = {
   EMPTY_BODY_ERROR,
@@ -21,4 +23,6 @@ module.exports = {
   SAVED_FAILURE_MESSAGE,
   UPDATED_SUCCESSFUL_MESSAGE,
   UPDATED_FAILURE_MESSAGE,
+  DELETED_SUCCESSFUL_MESSAGE,
+  DELETED_FAILURE_MESSAGE,
 };

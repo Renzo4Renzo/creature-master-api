@@ -90,6 +90,9 @@ const cardsSchema = new mongoose.Schema(
         `turns is needed on Field Boost Cards!`,
       ],
     },
+    deletedAt: {
+      type: Date,
+    },
   },
   { timestamps: true, versionKey: false }
 );

@@ -1,4 +1,4 @@
-const { postCard, getFilteredCards, countCards, getCard, patchCard } = require("../../models/cards.model");
+const { postCard, getFilteredCards, countCards, getCard, patchCard, deleteCard } = require("../../models/cards.model");
 const { getPagination } = require("../../services/pagination");
 
 const {
@@ -9,6 +9,7 @@ const {
   GET_CARD_FAILURE_MESSAGE,
   SAVED_FAILURE_MESSAGE,
   UPDATED_FAILURE_MESSAGE,
+  DELETED_FAILURE_MESSAGE,
 } = require("../../services/global");
 
 async function httpPostCards(req, res) {
@@ -50,15 +51,15 @@ async function httpGetCardsWithFilters(req, res) {
 }
 
 async function httpGetCard(req, res) {
-  try {
-    const { name } = req.params;
-    if (name === undefined) {
-      return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
-    }
-    const card = await getCard(name);
+  const { name } = req.params;
+  if (name === undefined) {
+    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+  }
+  const card = await getCard(name);
+  if (card.errors === undefined) {
     return res.status(200).json({ message: GET_CARD_SUCCESSFUL_MESSAGE, doc: card });
-  } catch (error) {
-    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: error.message });
+  } else {
+    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: card.errors });
   }
 }
 
@@ -85,4 +86,17 @@ async function httpPatchCard(req, res) {
   }
 }
 
-module.exports = { httpPostCards, httpGetCardsWithFilters, httpGetCard, httpPatchCard };
+async function httpDeleteCard(req, res) {
+  const { name } = req.params;
+  if (name === undefined) {
+    return res.status(400).json({ message: DELETED_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+  }
+  const deleteResult = await deleteCard(name);
+  if (deleteResult.errors === undefined) {
+    return res.status(200).json({ message: deleteResult.message, data: deleteResult.data });
+  } else {
+    return res.status(400).json(deleteResult);
+  }
+}
+
+module.exports = { httpPostCards, httpGetCardsWithFilters, httpGetCard, httpPatchCard, httpDeleteCard };
