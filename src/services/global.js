@@ -2,7 +2,7 @@
 const EMPTY_BODY_ERROR = "No data was received!";
 
 //Cards
-const EMPTY_NAME_PARAM_ERROR = "name was not specified in the path!";
+const EMPTY_ID_PARAM_ERROR = "id was not specified in the path!";
 const GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE = "Could not retrieve cards!";
 const GET_CARD_SUCCESSFUL_MESSAGE = "Card found!";
 const GET_CARD_FAILURE_MESSAGE = "Could not retrieve card!";
@@ -15,7 +15,7 @@ const DELETED_FAILURE_MESSAGE = "Could not delete the card!";
 
 module.exports = {
   EMPTY_BODY_ERROR,
-  EMPTY_NAME_PARAM_ERROR,
+  EMPTY_ID_PARAM_ERROR,
   GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE,
   GET_CARD_SUCCESSFUL_MESSAGE,
   GET_CARD_FAILURE_MESSAGE,

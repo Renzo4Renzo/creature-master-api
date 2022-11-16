@@ -3,7 +3,7 @@ const { getPagination } = require("../../services/pagination");
 
 const {
   EMPTY_BODY_ERROR,
-  EMPTY_NAME_PARAM_ERROR,
+  EMPTY_ID_PARAM_ERROR,
   GET_CARDS_WITH_FILTERS_FAILURE_MESSAGE,
   GET_CARD_SUCCESSFUL_MESSAGE,
   GET_CARD_FAILURE_MESSAGE,
@@ -51,11 +51,11 @@ async function httpGetCardsWithFilters(req, res) {
 }
 
 async function httpGetCard(req, res) {
-  const { name } = req.params;
-  if (name === undefined) {
-    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+  const { id } = req.params;
+  if (id === undefined) {
+    return res.status(400).json({ message: GET_CARD_FAILURE_MESSAGE, errors: EMPTY_ID_PARAM_ERROR });
   }
-  const card = await getCard(name);
+  const card = await getCard(id);
   if (card.errors === undefined) {
     return res.status(200).json({ message: GET_CARD_SUCCESSFUL_MESSAGE, doc: card });
   } else {
@@ -65,9 +65,9 @@ async function httpGetCard(req, res) {
 
 async function httpPatchCard(req, res) {
   try {
-    const { name } = req.params;
-    if (name === undefined) {
-      return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+    const { id } = req.params;
+    if (id === undefined) {
+      return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: EMPTY_ID_PARAM_ERROR });
     }
 
     const fieldsToUpdate = req.body;
@@ -75,7 +75,7 @@ async function httpPatchCard(req, res) {
       return res.status(400).json({ message: UPDATED_FAILURE_MESSAGE, errors: EMPTY_BODY_ERROR });
     }
 
-    const patchResult = await patchCard(fieldsToUpdate, name);
+    const patchResult = await patchCard(fieldsToUpdate, id);
     if (patchResult.errors === undefined) {
       return res.status(200).json({ message: patchResult.message, data: patchResult.data });
     } else {
@@ -87,11 +87,11 @@ async function httpPatchCard(req, res) {
 }
 
 async function httpDeleteCard(req, res) {
-  const { name } = req.params;
-  if (name === undefined) {
-    return res.status(400).json({ message: DELETED_FAILURE_MESSAGE, errors: EMPTY_NAME_PARAM_ERROR });
+  const { id } = req.params;
+  if (id === undefined) {
+    return res.status(400).json({ message: DELETED_FAILURE_MESSAGE, errors: EMPTY_ID_PARAM_ERROR });
   }
-  const deleteResult = await deleteCard(name);
+  const deleteResult = await deleteCard(id);
   if (deleteResult.errors === undefined) {
     return res.status(200).json({ message: deleteResult.message, data: deleteResult.data });
   } else {

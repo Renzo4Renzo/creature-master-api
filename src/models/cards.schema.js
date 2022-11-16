@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const cardsSchema = new mongoose.Schema(
   {
-    // id: {
-    //   type: String,
-    //   required: true,
-    // },
+    id: {
+      type: String,
+      required: true,
+    },
     type: {
       type: String,
       enum: { values: ["Creature", "Field Boost", "Quick Boost"], message: "{VALUE} is not a valid type" },

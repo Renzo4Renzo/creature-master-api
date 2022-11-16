@@ -11,8 +11,8 @@ const cardsRouter = express.Router();
 
 cardsRouter.post("/", httpPostCards);
 cardsRouter.get("/", httpGetCardsWithFilters);
-cardsRouter.get("/:name", httpGetCard);
-cardsRouter.patch("/:name", httpPatchCard);
-cardsRouter.delete("/:name", httpDeleteCard);
+cardsRouter.get("/:id", httpGetCard);
+cardsRouter.patch("/:id", httpPatchCard);
+cardsRouter.delete("/:id", httpDeleteCard);
 
 module.exports = cardsRouter;

@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require("uuid");
+
 const cards = require("./cards.schema");
 const { createFilterQuery } = require("../services/filter");
 const { createSortQuery } = require("../services/sort");
@@ -28,7 +30,7 @@ async function postCard(card) {
   if (validateResult !== undefined) {
     return validateResult;
   }
-
+  card.id = uuidv4();
   const saveResult = await saveCard(card);
   return saveResult;
 }
@@ -61,20 +63,20 @@ async function getFilteredCards(filters, pageOffset, pageSize) {
   return filteredCards;
 }
 
-async function getCard(name) {
-  const singleCard = await cards.findOne({ name: name, deletedAt: { $exists: false } }, { _id: 0 }).lean();
+async function getCard(id) {
+  const singleCard = await cards.findOne({ id: id, deletedAt: { $exists: false } }, { _id: 0 }).lean();
   if (singleCard === null) {
-    return { errors: `There is no card with the name '${name}'` };
+    return { errors: `There is no card with the id '${id}'` };
   } else return singleCard;
 }
 
-async function patchCard(fieldsToUpdate, name) {
+async function patchCard(fieldsToUpdate, id) {
   const validateBodyResult = await validateBody(fieldsToUpdate, cards, "PATCH");
   if (validateBodyResult !== undefined) {
     return validateBodyResult;
   }
 
-  const card = await getCard(name);
+  const card = await getCard(id);
   if (card.errors !== undefined) {
     return { message: UPDATED_FAILURE_MESSAGE, errors: card.errors };
   }
@@ -89,17 +91,17 @@ async function patchCard(fieldsToUpdate, name) {
     return validateResult;
   }
 
-  const patchResult = await updateCard(card, name);
+  const patchResult = await updateCard(card, id);
   return patchResult;
 }
 
-async function updateCard(card, name) {
+async function updateCard(card, id) {
   try {
     let cardToValidate = new cards(card);
     await cardToValidate.validate();
     let cardToUpdate = cardToValidate._doc;
     delete cardToUpdate._id;
-    const cardData = await cards.findOneAndUpdate({ name: name }, cardToUpdate, { new: true }).lean();
+    const cardData = await cards.findOneAndUpdate({ id: id }, cardToUpdate, { new: true }).lean();
     delete cardData._id;
     return { message: UPDATED_SUCCESSFUL_MESSAGE, data: cardData };
   } catch (error) {
@@ -111,13 +113,13 @@ async function updateCard(card, name) {
   }
 }
 
-async function deleteCard(name) {
+async function deleteCard(id) {
   try {
-    const cardToDelete = await getCard(name);
+    const cardToDelete = await getCard(id);
     if (cardToDelete.errors !== undefined) {
       return { message: DELETED_FAILURE_MESSAGE, errors: cardToDelete.errors };
     }
-    const deletedCard = await cards.findOneAndUpdate({ name: name }, { deletedAt: new Date() }, { new: true }).lean();
+    const deletedCard = await cards.findOneAndUpdate({ id: id }, { deletedAt: new Date() }, { new: true }).lean();
     delete deletedCard._id;
     return { message: DELETED_SUCCESSFUL_MESSAGE, data: deletedCard };
   } catch (error) {

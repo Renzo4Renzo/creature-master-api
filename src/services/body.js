@@ -4,6 +4,7 @@ const { setErrorMessageByHttpMethod } = require("./error-message");
 function validateBody(body, model, httpMethod) {
   const availableFields = Object.keys(model.schema.paths);
   removeSpecificArrayItem(availableFields, "_id");
+  removeSpecificArrayItem(availableFields, "id");
   if (httpMethod === "PATCH") removeSpecificArrayItem(availableFields, "type"); //TO DO: This is only working for "cards", it won't work for "decks"
   removeSpecificArrayItem(availableFields, "createdAt");
   removeSpecificArrayItem(availableFields, "updatedAt");
