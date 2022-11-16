@@ -14,6 +14,7 @@ function createFilterQuery(filters, model) {
   removeSpecificArrayItem(availableFilters, "_id");
   removeSpecificArrayItem(availableFilters, "createdAt");
   removeSpecificArrayItem(availableFilters, "updatedAt");
+  removeSpecificArrayItem(availableFilters, "deletedAt");
 
   const requestKeyFilters = Object.keys(requestFilters);
   const findQuery = {};
@@ -33,6 +34,7 @@ function createFilterQuery(filters, model) {
     if (model.schema.paths[key].instance === "String") findQuery[key] = new RegExp(findQuery[key]);
     else if (model.schema.paths[key].instance === "Number") findQuery[key] = Number(findQuery[key]);
   }
+  findQuery.deletedAt = { $exists: false };
   return findQuery;
 }
 

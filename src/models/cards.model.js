@@ -14,15 +14,13 @@ const {
 } = require("../services/global");
 
 async function postCard(card) {
-  //TO DO: Make sure "deletedAt" is not valid for create/update
   const validateBodyResult = await validateBody(card, cards, "POST");
   if (validateBodyResult !== undefined) {
     return validateBodyResult;
   }
 
-  const existingCard = await cards.findOne({ name: card.name });
-
-  if (existingCard) {
+  const existingCard = await getCard(card.name);
+  if (existingCard.errors === undefined) {
     return { message: SAVED_FAILURE_MESSAGE, errors: `There is already a card called '${card.name}'!` };
   }
 
@@ -38,8 +36,7 @@ async function postCard(card) {
 async function saveCard(card) {
   try {
     const cardToSave = new cards(card);
-    const response = await cardToSave.save();
-    const cardData = response._doc;
+    const { _doc: cardData } = await cardToSave.save();
     delete cardData._id;
     return { message: SAVED_SUCCESSFUL_MESSAGE, data: cardData };
   } catch (error) {
@@ -58,7 +55,6 @@ async function countCards(filters) {
 }
 
 async function getFilteredCards(filters, pageOffset, pageSize) {
-  //TO DO: Add "deletedAt: false" to filters
   const findQuery = createFilterQuery(filters, cards);
   const sortQuery = createSortQuery(filters, cards);
   const filteredCards = await cards.find(findQuery, { _id: 0 }).sort(sortQuery).skip(pageOffset).limit(pageSize);
@@ -78,11 +74,11 @@ async function patchCard(fieldsToUpdate, name) {
     return validateBodyResult;
   }
 
-  //TO DO: Use getCard()
-  const card = await cards.findOne({ name: name }).lean();
-  if (card === null) {
-    return { message: UPDATED_FAILURE_MESSAGE, errors: `There is no card in database called '${name}'!` };
+  const card = await getCard(name);
+  if (card.errors !== undefined) {
+    return { message: UPDATED_FAILURE_MESSAGE, errors: card.errors };
   }
+
   Object.assign(card, fieldsToUpdate);
   delete card._id;
   delete card.createdAt;
